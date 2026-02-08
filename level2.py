@@ -19,23 +19,23 @@ class Level2(Level):
 	def spawn_targets(self):
 		w, h = self.screen.get_size()
 		positions = [(i + 1) * w // 6 for i in range(5)]
-		# spawn 4 soldat2 (hp=2)
+		# faire apparaître 4 soldat2 (hp=2)
 		for i in range(4):
 			x = positions[i]
-			# randomize Y position slightly
+			# randomiser légèrement la position Y
 			y = h // 3 + random.randint(-30, 30)
 			img = ASSETS / "soldat2.png"
-			# slightly spaced, radius chosen larger to match level design
-			# soldat2 seek the player and deal touch damage
+			# légèrement espacés, rayon plus grand pour correspondre au design du niveau
+			# soldat2 cherche le joueur et inflige des dégâts au contact
 			t = level1.Target(x, y, image_path=img, hp=2, radius=36, seeks_player=True, touch_damage=0.5)
-			# randomize soldier movements more
+			# randomiser davantage les mouvements des soldats
 			t.vx *= random.uniform(0.35, 0.55)
 			t.vy *= random.uniform(0.35, 0.55)
 			self.targets.append(t)
-		# one soldat3 (hp=4)
+		# un soldat3 (hp=4)
 		x = positions[4]
 		img = ASSETS / "soldat3.png"
-		# soldat3 is a tank: larger and can shoot at the player
+		# soldat3 est un tank: plus grand et peut tirer sur le joueur
 		tank = level1.Target(x, y, image_path=img, hp=4, radius=70, can_shoot=True)
 		# make tank less likely to descend too low (we'll clamp in update)
 		tank.vy *= 0.5
@@ -66,13 +66,13 @@ class Level2(Level):
 		for t in self.targets:
 			if t.alive:
 				t.update(dt, w, h, player_x, player_y)
-				# prevent tank from descending too low
+				# empêcher le tank de descendre trop bas
 				if t.can_shoot:
 					max_y = h * 0.6
 					if t.y > max_y:
 						t.y = max_y
 						if t.vy > 0:
-							# bounce upward a bit
+							# rebondir légèrement vers le haut
 							t.vy *= -0.4
 				# tank shooting behavior
 				if t.alive and t.can_shoot and player:
@@ -86,7 +86,7 @@ class Level2(Level):
 						if dist > 0:
 							dx /= dist
 							dy /= dist
-							# enemy bullet towards player (slower)
+							# balle ennemie vers le joueur (plus lente)
 							self.bullets.append(level1.Bullet(t.x, t.y, dx, dy, speed=300, owner='enemy'))
 
 		for b in self.bullets:
@@ -94,7 +94,7 @@ class Level2(Level):
 
 		self.bullets = [b for b in self.bullets if b.alive and 0 <= b.x <= w and 0 <= b.y <= h]
 
-		# player bullets damage targets
+		# les balles du joueur endommagent les cibles
 		for b in list(self.bullets):
 			if getattr(b, 'owner', 'player') == 'player':
 				for t in self.targets:
@@ -108,12 +108,12 @@ class Level2(Level):
 							if t.hp <= 0:
 								t.alive = False
 							else:
-								# show hit indicator if enemy survives
+								# afficher l'indicateur de coup si l'ennemi survit
 								t.trigger_hit()
 
 		self.bullets = [b for b in self.bullets if b.alive]
 
-		# check player collisions (touch damage from soldiers 2)
+		# vérifier les collisions du joueur (dégâts au contact des soldats 2)
 		if player:
 			now = pygame.time.get_ticks()
 			px = player.player_rect.centerx
@@ -124,7 +124,7 @@ class Level2(Level):
 					dy = t.y - py
 					dist = (dx**2 + dy**2) ** 0.5
 					if dist <= t.radius + max(player.player_rect.width, player.player_rect.height) / 4:
-						# limit touch rate per target (1000ms to avoid double hits)
+						# limiter le taux de contact par cible (1000ms pour éviter les doubles coups)
 						if now - t.last_touch_time > 1000:
 							t.last_touch_time = now
 						player.half_lives -= int(t.touch_damage * 2)
@@ -164,7 +164,7 @@ class Level2(Level):
 					self.screen.blit(t.image, (int(t.x - iw // 2), int(t.y - ih // 2)))
 				else:
 					pygame.draw.circle(self.screen, (255, 100, 100), (int(t.x), int(t.y)), t.radius)
-				# show hit indicator if active
+				# afficher l'indicateur de coup s'il est actif
 				if t.show_hit:
 					now = pygame.time.get_ticks()
 					if now - t.hit_time < t.hit_duration:
@@ -176,7 +176,7 @@ class Level2(Level):
 						t.show_hit = False
 
 		for b in self.bullets:
-			# use custom image if set, otherwise default bullet image
+			# utiliser l'image personnalisée si définie, sinon l'image de balle par défaut
 			img_to_use = getattr(b, 'custom_image', None) if hasattr(b, 'custom_image') else None
 			if not img_to_use:
 				img_to_use = level1.Bullet.bullet_img

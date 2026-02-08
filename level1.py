@@ -8,7 +8,7 @@ ASSETS = Path(__file__).parent / "assets"
 
 
 class Target:
-	# class variable for hit indicator image
+	# variable de classe pour l'image d'indicateur de coup
 	hit_img = None
 	# class variable for hitmarker sound
 	hitmarker_sound = None
@@ -17,12 +17,12 @@ class Target:
 		self.x = x
 		self.y = y
 		self.alive = True
-		# slower movement for targets (reduced)
+		# mouvement plus lent pour les cibles (réduit)
 		self.vx = random.uniform(-70, 70)
 		self.vy = random.uniform(-90, 90)
 		self.hp = hp
 		self.image = None
-		# allow custom radius per target; default kept at 20
+		# permettre un rayon personnalisé par cible; valeur par défaut de 20
 		self.radius = radius
 		# behavior flags
 		self.seeks_player = seeks_player
@@ -30,20 +30,20 @@ class Target:
 		self.can_shoot = can_shoot
 		self.last_touch_time = 0
 		self.last_shot_time = 0
-		# randomize seeking strength per soldier
+		# randomiser la force de recherche par soldat
 		self.steer_strength = random.uniform(30, 50) if seeks_player else 0
-		# invincibility timer (for spawn protection)
+		# minuteur d'invincibilité (pour la protection au spawn)
 		self.spawn_time = pygame.time.get_ticks()
-		self.invincible_duration = 0  # ms, can be set after creation
-		# hit indicator
+		self.invincible_duration = 0  # ms, peut être défini après création
+		# indicateur de coup
 		self.show_hit = False
 		self.hit_time = 0
 		self.hit_duration = 400  # ms
-		# load hit image if not already loaded
+		# charger l'image de coup si pas déjà chargée
 		if Target.hit_img is None:
 			Target.hit_img = pygame.image.load(str(ASSETS / "hit.png")).convert_alpha()
 			Target.hit_img = pygame.transform.scale(Target.hit_img, (100, 100))
-		# load hitmarker sound if not already loaded
+		# charger le son du hitmarker si pas déjà chargé
 		if Target.hitmarker_sound is None:
 			Target.hitmarker_sound = pygame.mixer.Sound(str(ASSETS / "hitmarker_2.mp3"))
 			Target.hitmarker_sound.set_volume(0.4)
@@ -55,13 +55,13 @@ class Target:
 			self.image = None
 
 	def update(self, dt, screen_width, screen_height, player_x=None, player_y=None):
-		# simple seeking behavior: adjust velocity slightly toward player
+		# comportement de recherche simple: ajuster légèrement la vélocité vers le joueur
 		if self.seeks_player and player_x is not None and player_y is not None:
 			dx = player_x - self.x
 			dy = player_y - self.y
 			dist = (dx ** 2 + dy ** 2) ** 0.5
 			if dist > 0:
-				# normalize and apply steering towards player (randomized per soldier)
+				# normaliser et appliquer la direction vers le joueur (aléatoire par soldat)
 				self.vx += (dx / dist) * self.steer_strength * dt
 				self.vy += (dy / dist) * self.steer_strength * dt
 
@@ -76,17 +76,17 @@ class Target:
 			self.y = max(self.radius, min(screen_height - self.radius, self.y))
 
 	def trigger_hit(self):
-		"""Show hit indicator when enemy takes damage but doesn't die"""
+		"""Afficher l'indicateur de coup quand l'ennemi prend des dégâts mais ne meurt pas"""
 		self.show_hit = True
 		self.hit_time = pygame.time.get_ticks()
-		# play hitmarker sound
+		# jouer le son du hitmarker
 		if Target.hitmarker_sound:
 			Target.hitmarker_sound.play()
 
 
 
 class Bullet:
-	# class variable for bullet image (loaded once)
+	# variable de classe pour l'image de balle (chargée une fois)
 	bullet_img = None
 	poing_img = None
 	
@@ -97,7 +97,7 @@ class Bullet:
 		self.dy = dy
 		self.owner = owner
 		self.custom_image = custom_image
-		# set default speeds depending on owner
+		# définir les vitesses par défaut selon le propriétaire
 		if speed is None:
 			if owner == 'player':
 				self.speed = 600
@@ -107,17 +107,17 @@ class Bullet:
 			self.speed = speed
 		self.radius = 4
 		self.alive = True
-		# load bullet image if not already loaded
+		# charger l'image de balle si pas déjà chargée
 		if Bullet.bullet_img is None:
 			Bullet.bullet_img = pygame.image.load(str(ASSETS / "balle.png"))
 			Bullet.bullet_img = pygame.transform.scale(Bullet.bullet_img, (24, 24))
-		# load poing image if not already loaded
+		# charger l'image de poing si pas déjà chargée
 		if Bullet.poing_img is None:
 			Bullet.poing_img = pygame.image.load(str(ASSETS / "poing.png"))
 			Bullet.poing_img = pygame.transform.scale(Bullet.poing_img, (32, 32))
 
 	def update(self, dt, *_args, **_kwargs):
-		# move bullet along its fixed direction (set at shoot time)
+		# déplacer la balle dans sa direction fixe (définie au moment du tir)
 		self.x += self.dx * self.speed * dt
 		self.y += self.dy * self.speed * dt
 
@@ -133,27 +133,27 @@ class Level1(Level):
 
 	def spawn_targets(self):
 		w, h = self.screen.get_size()
-		# Spawn 3 soldiers type1 (pv=1) and 2 soldiers type2 (pv=2)
+		# Faire apparaître 3 soldats type1 (pv=1) et 2 soldats type2 (pv=2)
 		positions = [(i + 1) * w // 6 for i in range(5)]
 		# first 3 -> soldat1
 		for i in range(3):
 			x = positions[i]
-			# randomize Y position slightly
+			# randomiser légèrement la position Y
 			y = h // 3 + random.randint(-30, 30)
 			img = ASSETS / "soldat1.png"
-			# soldat1: larger than default, seeks player, touch damage
+			# soldat1: plus grand que par défaut, cherche le joueur, dégâts au contact
 			t = Target(x, y, image_path=img, hp=1, radius=28, seeks_player=True, touch_damage=0.5)
 			# randomize soldier movements more
 			t.vx *= random.uniform(0.35, 0.55)
 			t.vy *= random.uniform(0.35, 0.55)
 			self.targets.append(t)
-		# next 2 -> soldat2
+		# les 2 suivants -> soldat2
 		for i in range(3, 5):
 			x = positions[i]
 			# randomize Y position slightly
 			y = h // 3 + random.randint(-30, 30)
 			img = ASSETS / "soldat2.png"
-			# soldat2: larger hp, seeks player, touch damage
+			# soldat2: plus de pv, cherche le joueur, dégâts au contact
 			t = Target(x, y, image_path=img, hp=2, radius=40, seeks_player=True, touch_damage=0.5)
 			# randomize soldier movements more
 			t.vx *= random.uniform(0.35, 0.55)
@@ -191,7 +191,7 @@ class Level1(Level):
 		
 		self.bullets = [b for b in self.bullets if b.alive and 0 <= b.x <= w and 0 <= b.y <= h]
 
-		# player bullets damage targets
+		# les balles du joueur endommagent les cibles
 		for b in list(self.bullets):
 			if getattr(b, 'owner', 'player') == 'player':
 				for t in self.targets:
@@ -205,7 +205,7 @@ class Level1(Level):
 							if t.hp <= 0:
 								t.alive = False
 							else:
-								# show hit indicator if enemy survives
+								# afficher l'indicateur de coup si l'ennemi survit
 								t.trigger_hit()
 
 		# enemy bullets can hit player (defensive, mostly used by tanks)
@@ -222,7 +222,7 @@ class Level1(Level):
 
 		self.bullets = [b for b in self.bullets if b.alive]
 
-		# check player collisions (touch damage from soldiers 1 & 2)
+		# vérifier les collisions du joueur (dégâts au contact des soldats 1 & 2)
 		if player:
 			now = pygame.time.get_ticks()
 			px = player.player_rect.centerx
@@ -233,7 +233,7 @@ class Level1(Level):
 					dy = t.y - py
 					dist = (dx**2 + dy**2) ** 0.5
 					if dist <= t.radius + max(player.player_rect.width, player.player_rect.height) / 4:
-						# limit touch rate per target (1000ms to avoid double hits)
+						# limiter le taux de contact par cible (1000ms pour éviter les doubles coups)
 						if now - t.last_touch_time > 1000:
 							t.last_touch_time = now
 							player.half_lives -= int(t.touch_damage * 2)
@@ -263,7 +263,7 @@ class Level1(Level):
 					self.screen.blit(t.image, (int(t.x - iw // 2), int(t.y - ih // 2)))
 				else:
 					pygame.draw.circle(self.screen, (255, 100, 100), (int(t.x), int(t.y)), t.radius)
-				# show hit indicator if active
+				# afficher l'indicateur de coup s'il est actif
 				if t.show_hit:
 					now = pygame.time.get_ticks()
 					if now - t.hit_time < t.hit_duration:
@@ -275,7 +275,7 @@ class Level1(Level):
 						t.show_hit = False
 		
 		for b in self.bullets:
-			# use custom image if set, otherwise default bullet image
+			# utiliser l'image personnalisée si définie, sinon l'image de balle par défaut
 			img_to_use = b.custom_image if b.custom_image else Bullet.bullet_img
 			if img_to_use:
 				iw, ih = img_to_use.get_size()

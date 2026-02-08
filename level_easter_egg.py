@@ -14,7 +14,7 @@ class LevelEasterEgg(Level):
 		self.targets = []
 		self.bullets = []
 		self.completed = False
-		# preload poing image for boss bullets if needed
+		# précharger l'image de poing pour les balles du boss si nécessaire
 		if level1.Bullet.poing_img is None:
 			level1.Bullet.poing_img = pygame.image.load(str(ASSETS / "poing.png"))
 			level1.Bullet.poing_img = pygame.transform.scale(level1.Bullet.poing_img, (32, 32))
@@ -22,7 +22,7 @@ class LevelEasterEgg(Level):
 
 	def spawn_targets(self):
 		w, h = self.screen.get_size()
-		# Easter egg boss centered
+		# Boss easter egg centré
 		boss_x = w // 2
 		boss_y = h // 3
 		
@@ -35,7 +35,7 @@ class LevelEasterEgg(Level):
 			touch_damage=0,
 			can_shoot=True
 		)
-		# randomize boss movement slightly
+		# randomiser légèrement le mouvement du boss
 		boss.vx *= random.uniform(0.6, 0.9)
 		boss.vy *= random.uniform(0.6, 0.9)
 		boss.steer_strength = random.uniform(50, 70)
@@ -51,7 +51,7 @@ class LevelEasterEgg(Level):
 		w, h = self.screen.get_size()
 		now = pygame.time.get_ticks()
 		
-		# update all targets (enemies)
+		# mettre à jour toutes les cibles (ennemis)
 		for t in self.targets:
 			if t.seeks_player and game:
 				# simple steering towards player
@@ -62,15 +62,15 @@ class LevelEasterEgg(Level):
 					t.vx += (dx / dist) * t.steer_strength * dt
 					t.vy += (dy / dist) * t.steer_strength * dt
 			
-			# update position
+			# mettre à jour la position
 			t.x += t.vx * dt
 			t.y += t.vy * dt
 			
-			# Boss shooting
+			# Tir du Boss
 			if t.can_shoot and game:
 				# Utiliser le cooldown normal
 				if now - t.last_shot > t.shoot_cooldown:
-					# shoot at player
+					# tirer sur le joueur
 					dx = game.player_rect.centerx - t.x
 					dy = game.player_rect.centery - t.y
 					dist = (dx**2 + dy**2)**0.5
@@ -86,7 +86,7 @@ class LevelEasterEgg(Level):
 			t.x = max(t.radius, min(w - t.radius, t.x))
 			t.y = max(t.radius, min(h // 3, t.y))  # ne descend pas plus bas que le tiers supérieur
 			
-			# update hit indicator
+			# mettre à jour l'indicateur de coup
 			if t.show_hit and now - t.hit_time > 400:
 				t.show_hit = False
 		
@@ -108,12 +108,12 @@ class LevelEasterEgg(Level):
 					game.take_hit()
 					b.alive = False
 		
-		# check bullet hits on targets (only player bullets)
+		# vérifier les coups de balle sur les cibles (uniquement les balles du joueur)
 		for b in list(self.bullets):
 			if not b.alive or getattr(b, 'owner', None) == 'enemy':
 				continue
 			for t in self.targets:
-				# check spawn invincibility
+				# vérifier l'invincibilité au spawn
 				if now - t.spawn_time < t.invincible_duration:
 					continue
 				dx = b.x - t.x
@@ -127,7 +127,7 @@ class LevelEasterEgg(Level):
 						self.targets.remove(t)
 					break
 		
-		# remove dead bullets
+		# retirer les balles mortes
 		self.bullets = [b for b in self.bullets if b.alive]
 		
 		# check if all targets are dead
@@ -135,7 +135,7 @@ class LevelEasterEgg(Level):
 			self.completed = True
 
 	def shoot(self, player_rect):
-		# player shoots from their position
+		# le joueur tire depuis sa position
 		mouse_x, mouse_y = pygame.mouse.get_pos()
 		dx = mouse_x - player_rect.centerx
 		dy = mouse_y - player_rect.centery
@@ -152,32 +152,32 @@ class LevelEasterEgg(Level):
 		bg = pygame.transform.scale(self.background_img, (w, h))
 		self.screen.blit(bg, (0, 0))
 		
-		# draw targets
+		# dessiner les cibles
 		for t in self.targets:
 			if t.image:
 				img_rect = t.image.get_rect(center=(int(t.x), int(t.y)))
 				self.screen.blit(t.image, img_rect)
 				
-				# Draw hit indicator if active
+				# Dessiner l'indicateur de coup s'il est actif
 				if t.show_hit and hasattr(t, 'hit_img') and t.hit_img:
 					hit_rect = t.hit_img.get_rect(center=(int(t.x), int(t.y)))
 					self.screen.blit(t.hit_img, hit_rect)
 		
-		# draw bullets
+		# dessiner les balles
 		for b in self.bullets:
 			# Use custom image if available
 			if hasattr(b, 'custom_image') and b.custom_image:
 				img_rect = b.custom_image.get_rect(center=(int(b.x), int(b.y)))
 				self.screen.blit(b.custom_image, img_rect)
 			elif hasattr(b, 'owner') and b.owner == 'player':
-				# Player bullets use balle image
+				# Les balles du joueur utilisent l'image balle
 				if hasattr(level1.Bullet, 'bullet_img') and level1.Bullet.bullet_img:
 					img_rect = level1.Bullet.bullet_img.get_rect(center=(int(b.x), int(b.y)))
 					self.screen.blit(level1.Bullet.bullet_img, img_rect)
 				else:
 					pygame.draw.circle(self.screen, (255, 200, 0), (int(b.x), int(b.y)), b.radius)
 			else:
-				# Enemy bullets default
+				# Balles ennemies par défaut
 				pygame.draw.circle(self.screen, (255, 50, 50), (int(b.x), int(b.y)), b.radius)
 
 	def handle_event(self, event):

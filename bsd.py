@@ -3,12 +3,12 @@ from pathlib import Path
 
 ASSETS = Path(__file__).parent / "assets"
 
-# Initialize mixer for sounds
+# Initialiser le mixer pour les sons
 pygame.mixer.init()
 
 
 class BSD:
-	# class variable for gun sound
+	# variable de classe pour le son de l'arme
 	gun_sound = None
 	
 	def __init__(self, screen):
@@ -71,23 +71,23 @@ class BSD:
 			self.screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
 			self.update_position()
 		elif event.type == pygame.MOUSEBUTTONDOWN:
-			# only shoot on left click and if we have ammo and not reloading
+			# tirer uniquement au clic gauche si on a des munitions et qu'on ne recharge pas
 			if getattr(event, 'button', 1) == 1:
 				if not self.reloading and self.ammo > 0:
 					self.ammo -= 1
-					# play gun sound (stop previous if playing)
+					# jouer le son de l'arme (arrêter le précédent s'il joue)
 					if BSD.gun_sound:
 						BSD.gun_sound.stop()
 						BSD.gun_sound.play()
-					# start auto-reload when ammo depletes
+					# démarrer le rechargement automatique quand les munitions sont épuisées
 					if self.ammo <= 0:
 						self.start_reload()
 					return "shoot"
-				# if clicked while empty, start reload
+				# si clic alors que vide, démarrer le rechargement
 				if self.ammo <= 0 and not self.reloading:
 					self.start_reload()
 		elif event.type == pygame.KEYDOWN:
-			# manual reload
+			# rechargement manuel
 			if event.key == pygame.K_r and not self.reloading and self.ammo < self.max_ammo:
 				self.start_reload()
 		return None
@@ -95,7 +95,7 @@ class BSD:
 	def start_reload(self):
 		self.reloading = True
 		self.reload_remaining = self.reload_time
-		# play reload sound
+		# jouer le son de rechargement
 		if hasattr(self, 'reload_sound') and self.reload_sound:
 			self.reload_sound.play()
 	
@@ -133,7 +133,7 @@ class BSD:
 		
 		self.player_rect.x = max(0, min(w - self.player_rect.width, self.player_rect.x))
 
-		# reload processing
+		# traitement du rechargement
 		if self.reloading:
 			self.reload_remaining -= dt
 			if self.reload_remaining <= 0:

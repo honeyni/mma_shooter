@@ -14,18 +14,18 @@ class Level3(Level):
 		self.targets = []
 		self.bullets = []
 		self.completed = False
-		# Combo system
+		# Système de combo
 		self.combo_count = 0
 		self.special_bullet_ready = False
-		# Load special bullet images
+		# Charger les images de balle spéciale
 		self.spe_img = pygame.image.load(str(ASSETS / "spe.png"))
 		self.spe_img = pygame.transform.scale(self.spe_img, (48, 48))
 		self.speexplose_gif = pygame.image.load(str(ASSETS / "speexplose.gif"))
 		self.speexplose_gif = pygame.transform.scale(self.speexplose_gif, (120, 120))
 		self.faaah_sound = pygame.mixer.Sound(str(ASSETS / "faaah.mp3"))
 		self.faaah_sound.set_volume(0.6)
-		# Active explosions
-		self.explosions = []  # list of (x, y, start_time)
+		# Explosions actives
+		self.explosions = []  # liste de (x, y, start_time)
 		# preload poing image for boss bullets
 		if level1.Bullet.poing_img is None:
 			level1.Bullet.poing_img = pygame.image.load(str(ASSETS / "poing.png"))
@@ -34,13 +34,13 @@ class Level3(Level):
 
 	def spawn_targets(self):
 		w, h = self.screen.get_size()
-		# Create multiple rows of enemies
-		# First row: 6 boxeurs
+		# Créer plusieurs rangées d'ennemis
+		# Première rangée: 6 boxeurs
 		positions_row1 = [(i + 1) * w // 7 for i in range(6)]
 		y_row1 = h // 4
 		for i in range(6):
 			x = positions_row1[i]
-			# randomize Y position slightly
+			# randomiser légèrement la position Y
 			y = y_row1 + random.randint(-20, 20)
 			# cycle through boxeur images
 			img_index = (i % 3) + 1
@@ -48,7 +48,7 @@ class Level3(Level):
 				img = ASSETS / "boxeur 2.png"
 			else:
 				img = ASSETS / f"boxeur{img_index}.png"
-			# boxeurs seek the player and deal touch damage
+			# les boxeurs cherchent le joueur et infligent des dégâts au contact
 			t = level1.Target(x, y, image_path=img, hp=10, radius=40, seeks_player=True, touch_damage=0.5)
 			# randomize boxeur movements more
 			t.vx *= random.uniform(0.35, 0.55)
@@ -57,14 +57,14 @@ class Level3(Level):
 			t.invincible_duration = 2500
 			self.targets.append(t)
 		
-		# Second row: 3 boss
+		# Deuxième rangée: 3 boss
 		positions_row2 = [(i + 1) * w // 4 for i in range(3)]
 		y_row2 = h // 2.5
 		for i in range(3):
 			x = positions_row2[i]
 			y = y_row2 + random.randint(-20, 20)
 			img = ASSETS / "boss.png"
-			# boss is stronger and can shoot at the player
+			# le boss est plus fort et peut tirer sur le joueur
 			boss = level1.Target(x, y, image_path=img, hp=25, radius=75, can_shoot=True)
 			# make boss move faster
 			boss.vx *= 1.5
@@ -90,11 +90,11 @@ class Level3(Level):
 		self.bullets.append(bullet)
 	
 	def shoot_special(self, player_rect):
-		"""Tire la balle spéciale avec Espace"""
+		"""Tirer la balle spéciale avec Espace"""
 		if not self.special_bullet_ready:
 			return
 		
-		# Play faaah sound
+		# Jouer le son faaah
 		if self.faaah_sound:
 			self.faaah_sound.play()
 		
@@ -108,7 +108,7 @@ class Level3(Level):
 		bullet = level1.Bullet(player_rect.centerx, player_rect.centery, dx, dy, owner='player', custom_image=self.spe_img)
 		bullet.is_special = True
 		self.bullets.append(bullet)
-		# Reset combo
+		# Réinitialiser le combo
 		self.special_bullet_ready = False
 		self.combo_count = 0
 

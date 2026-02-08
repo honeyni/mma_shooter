@@ -16,7 +16,7 @@ screen = pygame.display.set_mode((960, 600), pygame.RESIZABLE)
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
 
-# Load animated GIF frames
+# Charger les images du GIF animé
 def load_gif_frames(gif_path):
 	frames = []
 	gif = Image.open(gif_path)
@@ -131,7 +131,7 @@ def show_victory(duration=4, is_easter_egg=False):
 			scaled_win = pygame.transform.smoothscale(current_frame, (w, h))
 			screen.blit(scaled_win, (0, 0))
 			
-			# Advance frame every 100ms
+			# Avancer l'image toutes les 100ms
 			if pygame.time.get_ticks() % 100 < 50:
 				frame_idx += 1
 		
@@ -147,7 +147,6 @@ def show_transition(trans_number, duration=2):
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				exit()
-		
 		screen.fill((0, 0, 0))
 		w, h = screen.get_size()
 		scaled_trans = pygame.transform.smoothscale(trans_img, (w, h))
@@ -182,26 +181,26 @@ def draw_reticle(screen, pos, radius=15):
 def draw_hud(screen, game):
 	font = pygame.font.Font(str(ASSETS / "ARCADECLASSIC.TTF"), 28)
 	
-	# Draw life images (6 half-lives = 3 full lives)
+	# Dessiner les images de vie (6 demi-vies = 3 vies pleines)
 	x_offset = 10
 	y_offset = 8
 	
 	full_lives = game.half_lives // 2
 	half_life = game.half_lives % 2
 	
-	# draw full lives
+	# dessiner les vies pleines
 	for i in range(full_lives):
 		if game.hp_img:
 			screen.blit(game.hp_img, (x_offset, y_offset))
 		x_offset += 35
 	
-	# draw half life if any
+	# dessiner la demi-vie si présente
 	if half_life > 0:
 		if game.mihp_img:
 			screen.blit(game.mihp_img, (x_offset, y_offset))
 		x_offset += 35
 	
-	# Ammo with bullet images
+	# Munitions avec images de balles
 	x_offset += 30
 	# draw current ammo as bullet images
 	for i in range(game.ammo):
@@ -209,13 +208,13 @@ def draw_hud(screen, game):
 			screen.blit(game.balle_img, (x_offset, y_offset + 3))
 			x_offset += 8
 	
-	# draw remaining bullets as outlines (empty ammo spots)
+	# dessiner les balles restantes sous forme de contours (emplacements vides)
 	for i in range(game.max_ammo - game.ammo):
 		if hasattr(game, 'balle_empty_img') and game.balle_empty_img:
 			screen.blit(game.balle_empty_img, (x_offset, y_offset + 3))
 		x_offset += 8
 	
-	# Reload status
+	# Statut de rechargement
 	if game.reloading:
 		reload_text = font.render("RECHARGEMENT", True, (200, 200, 0))
 		screen.blit(reload_text, (x_offset + 20, y_offset))
@@ -235,12 +234,12 @@ def draw_pause_menu(screen):
 	
 	option_font = pygame.font.Font(str(ASSETS / "ARCADECLASSIC.TTF"), 48)
 	
-	# Resume option
+	# Option reprendre
 	resume_text = option_font.render("REPRENDRE   R", True, (0, 255, 0))
 	resume_rect = resume_text.get_rect(center=(w // 2, h // 2))
 	screen.blit(resume_text, resume_rect)
 	
-	# Menu option
+	# Option menu
 	menu_text = option_font.render("RETOUR  AU  MENU   M", True, (255, 100, 100))
 	menu_rect = menu_text.get_rect(center=(w // 2, h // 2 + 80))
 	screen.blit(menu_text, menu_rect)
@@ -249,7 +248,7 @@ def draw_pause_menu(screen):
 
 game = BSD(screen)
 levels = LevelManager(screen)
-# Easter egg trigger
+# Déclencheur easter egg
 easter_egg_shots = 0
 easter_egg_triggered = False
 game.center_player()
@@ -271,15 +270,15 @@ while menu_loop:
 				if res is not None:
 					selected_level = res
 					levels.load(selected_level)
-					# Reset easter egg
+					# Réinitialiser l'easter egg
 					easter_egg_shots = 0
 					easter_egg_triggered = False
 					# Réinitialiser les vies complètement
 					game.half_lives = 6
-					# Reload ammo at start of level
+					# Recharger les munitions au début du niveau
 					game.ammo = game.max_ammo
 					game.reloading = False
-					# Stop menu music
+					# Arrêter la musique du menu
 					pygame.mixer.music.stop()
 					pygame.mixer.music.load(str(ASSETS / "musfond.mp3"))
 					pygame.mixer.music.set_volume(0.3)
@@ -303,7 +302,7 @@ while menu_loop:
 				running = False
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE or event.key == pygame.K_p:
-					# Toggle pause
+					# Basculer la pause
 					paused = not paused
 				elif paused:
 					# Handle pause menu inputs
@@ -322,41 +321,41 @@ while menu_loop:
 						menu_loop = True
 						paused = False
 				elif event.key == pygame.K_SPACE:
-					# Special bullet for level 3
+					# Balle spéciale pour le niveau 3
 					if hasattr(levels.current, 'shoot_special'):
 						levels.current.shoot_special(game.player_rect)
 				else:
-					# pass other key events to game
+					# passer les autres événements clavier au jeu
 					res = game.handle_event(event)
 					if res == "shoot":
-						# call shoot only if current level implements it
+						# appeler shoot seulement si le niveau actuel l'implémente
 						if hasattr(levels.current, 'shoot'):
 							levels.current.shoot(game.player_rect)
 			else:
 				if not paused:
 					res = game.handle_event(event)
 					if res == "shoot":
-						# Easter egg: detect 5 shots in top-right corner during level 2
+						# Easter egg: détecter 5 tirs dans le coin supérieur droit pendant le niveau 2
 						if levels.current_index == 1 and not easter_egg_triggered:
 							mouse_x, mouse_y = pygame.mouse.get_pos()
 							w, h = screen.get_size()
-							# Top-right corner: within 100 pixels from top and right edges
+							# Coin supérieur droit: dans les 100 pixels des bords supérieur et droit
 							if mouse_x > w - 100 and mouse_y < 100:
 								easter_egg_shots += 1
 								if easter_egg_shots >= 5:
 									easter_egg_triggered = True
-									# Load easter egg level
+									# Charger le niveau easter egg
 									levels.current = LevelEasterEgg(screen)
 									game.ammo = game.max_ammo
 									game.reloading = False
 									game.center_player()
-						# call shoot only if current level implements it
+						# appeler shoot seulement si le niveau actuel l'implémente
 						if hasattr(levels.current, 'shoot'):
 							levels.current.shoot(game.player_rect)
 					levels.current.handle_event(event)
 		
 		if paused:
-			# Draw game state and pause menu overlay
+			# Dessiner l'état du jeu et le menu pause en superposition
 			screen.fill((0, 0, 0))
 			levels.draw()
 			game.draw()
@@ -369,9 +368,9 @@ while menu_loop:
 			continue
 		
 		game.update(0.016)
-		# Check if player is dead
+		# Vérifier si le joueur est mort
 		if game.half_lives <= 0:
-			# Stop music
+			# Arrêter la musique
 			pygame.mixer.music.stop()
 			
 			# Si on perd l'easter egg, retourner au niveau 2
@@ -398,14 +397,14 @@ while menu_loop:
 				game.reloading = False
 				easter_egg_shots = 0
 				easter_egg_triggered = False
-				levels.load(0)  # restart from level 1
+				levels.load(0)  # recommencer depuis le niveau 1
 				game.center_player()
 				running = False
 				menu_loop = True
 			continue
 		levels.current.update(0.016, game)
 
-		# handle enemy bullets hitting the player (generic check)
+		# gérer les balles ennemies touchant le joueur (vérification générique)
 		if hasattr(levels.current, 'bullets'):
 			for b in list(levels.current.bullets):
 				if getattr(b, 'owner', None) == 'enemy':
@@ -418,7 +417,7 @@ while menu_loop:
 						game.take_hit()
 		
 		if levels.current.completed:
-			# Stop music between levels
+			# Arrêter la musique entre les niveaux
 			pygame.mixer.music.stop()
 			
 			# Vérifier si c'est l'easter egg qui est complété
@@ -445,17 +444,17 @@ while menu_loop:
 					show_transition(2, 2)
 				
 				levels.load(levels.current_index + 1)
-				# Reload ammo for next level
+				# Recharger les munitions pour le niveau suivant
 				game.ammo = game.max_ammo
 				game.reloading = False
 				pygame.mixer.music.load(str(ASSETS / "musfond.mp3"))
 				pygame.mixer.music.set_volume(0.3)
 				pygame.mixer.music.play(-1)
 			else:
-				# Game completed! Show victory screen
+				# Jeu terminé! Afficher l'écran de victoire
 				levels.mark_completed()
 				show_victory(4, is_easter_egg=False)
-				# Reset and go back to menu
+				# Réinitialiser et retourner au menu
 				game.half_lives = 6
 				game.ammo = game.max_ammo
 				game.reloading = False
@@ -467,7 +466,7 @@ while menu_loop:
 		screen.fill((0, 0, 0))
 		levels.draw()
 		game.draw()
-		# HUD
+		# Interface
 		draw_hud(screen, game)
 		
 		mouse_pos = pygame.mouse.get_pos()
